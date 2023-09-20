@@ -1,116 +1,14 @@
-import telebot
+"""Telegram chatbot"""
+import random
 from telebot import types
 import requests
-import random
 import emoji
-
-# Токен і API ключі
-TOKEN = '6693729475:AAHlTQfNjNkwN6vYLhM67qiK473-Klwb5g0'
-API_KEY = 'b1826c6059192a67e00a4e541e90b1fb'
-BASE_URL = 'https://api.themoviedb.org/3'
-DEEZER_URL = 'https://api.deezer.com'
-COUNTRY_CODE = 'UA'
-bot = telebot.TeleBot(TOKEN)
-
-# Словник перекладу для фільмів/серіалів
-GENRE_TRANSLATION = {
-    'Action': 'Екшн',
-    'Adventure': 'Пригоди',
-    'Animation': 'Анімація',
-    'Comedy': 'Комедія',
-    'Crime': 'Кримінал',
-    'Documentary': 'Документальний',
-    'Drama': 'Драма',
-    'Family': 'Сімейний',
-    'Fantasy': 'Фентезі',
-    'History': 'Історичний',
-    'Horror': 'Жахи',
-    'Music': 'Музика',
-    'Mystery': 'Детектив',
-    'Romance': 'Романтика',
-    'Science Fiction': 'Наукова фантастика',
-    'TV Movie': 'Телевізійний фільм',
-    'Thriller': 'Трилер',
-    'War': 'Війна',
-    'Western': 'Вестерн',
-    'Action & Adventure': 'Екшн та пригоди',
-    'Kids': 'Дитячі',
-    'News': 'Новини',
-    'Reality': 'Реаліті',
-    'Sci-Fi & Fantasy': 'Наукова фантастика та фентезі',
-    'Soap': 'Серіали',
-    'Talk': 'Ток-шоу',
-    'War & Politics': 'Війна та політика'
-}
-
-
+from globals import bot
+from movies import get_movie_genres, get_movies_by_genre
+from tv import get_tv_by_genre, get_tv_genres
+from music import get_music_genres, get_songs_by_genre
 
 # Функції
-def get_movie_genres():
-    url = f'{BASE_URL}/genre/movie/list?api_key={API_KEY}&language=en-US'
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        return {
-            genre['id']: GENRE_TRANSLATION.get(
-                genre['name'],
-                genre['name']) for genre in data['genres']}
-    else:
-        return {}
-
-
-def get_movies_by_genre(genre_id):
-    url = f'{BASE_URL}/discover/movie?api_key={API_KEY}&language=en-US&sort_by=popularity.desc&page=1&with_genres={genre_id}'
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        return [movie['title'] for movie in data['results']][:5]
-    else:
-        return ["Проблема при отриманні даних"]
-
-
-def get_tv_genres():
-    url = f'{BASE_URL}/genre/tv/list?api_key={API_KEY}&language=en-US'
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        return {
-            genre['id']: GENRE_TRANSLATION.get(
-                genre['name'],
-                genre['name']) for genre in data['genres']}
-    else:
-        return {}
-
-
-def get_tv_by_genre(genre_id):
-    url = f'{BASE_URL}/discover/tv?api_key={API_KEY}&language=en-US&sort_by=popularity.desc&include_adult=false&include_video=false&page=1&with_genres={genre_id}'
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        return [tv['name'] for tv in data['results']][:5]
-    else:
-        return ["Проблема при отриманні даних"]
-
-
-def get_music_genres():
-    response = requests.get(f'{DEEZER_URL}/genre')
-    if response.status_code == 200:
-        return {genre['id']: genre['name']
-                for genre in response.json()['data']}
-    else:
-        return {}
-
-
-def get_songs_by_genre(genre_id):
-    response = requests.get(
-        f'{DEEZER_URL}/genre/{genre_id}/artists?country={COUNTRY_CODE}')
-    if response.status_code == 200:
-        return [song['name']
-                for song in response.json()['data']][:5]
-    else:
-        return ["Проблема при отриманні даних"]
-
-
 def determine_winner(user_choice, bot_choice):
     if user_choice == bot_choice:
         return 'Нічия!'
@@ -127,7 +25,7 @@ def load_jokes_from_file(filename):
         return [line.strip() for line in file.readlines() if line.strip()]
 
 
-JOKES = load_jokes_from_file("/Users/aminali/Documents/анекдоти.txt")
+JOKES = load_jokes_from_file("./jokes.txt")
 
 
 def get_random_joke():
@@ -140,8 +38,7 @@ def get_random_quote():
     if response.status_code == 200:
         data = response.json()
         return f'"{data["content"]}" - {data["author"]}'
-    else:
-        return "Проблема при отриманні цитати"
+    return "Проблема при отриманні цитати"
 
 
 # Команда /start, головне меню бота
